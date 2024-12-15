@@ -3,6 +3,9 @@
 A tabletop game developed by [Devvit]. This game was inspired by Alien Shooter.
 You can try it [here].
 
+## Category
+tabletop (games with map and points)
+
 ## How to play
 
 - Move around using WASD on desktop's keyboard. Shooting using the SPACEBAR.
