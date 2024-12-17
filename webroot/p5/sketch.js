@@ -16,7 +16,12 @@ let curKeyBoard = 0;
 let itemBullet;
 let stopButton;
 let user = "";
-let best = 0;
+let top3Leaderboard = [];
+let bgSound;
+
+// function preload() {
+//   bgSound = loadSound("/assets/bg_sound.mp3");
+// }
 
 function setup() {
   // When the Devvit app sends a message with `context.ui.webView.postMessage`, this will be triggered
@@ -32,15 +37,15 @@ function setup() {
 
       // Load initial data
       if (message.type === "initialData") {
-        const { username, bestScore } = message.data;
+        const { username, leaderboard } = message.data;
         user = username;
-        best = bestScore;
+        top3Leaderboard = leaderboard;
       }
 
       // Update counter
       if (message.type === "updateScore") {
-        const { bestScore } = message.data;
-        best = bestScore;
+        const { leaderboard } = message.data;
+        top3Leaderboard = leaderboard;
       }
     }
   });
@@ -82,6 +87,9 @@ function setup() {
 }
 
 function draw() {
+  // if (!bgSound.isPlaying()) {
+  //   bgSound.play();
+  // }
   background(0);
   frameRate(60);
 
@@ -208,13 +216,10 @@ function draw() {
   if (plane.die) {
     // end game
     // Sends a message to the Devvit app
-    if (plane.creep > best) {
-      window.parent?.postMessage(
-        { type: "setScore", data: { newScore: Number(plane.creep || 0) } },
-        "*"
-      );
-      // best = plane.creep;
-    }
+    window.parent?.postMessage(
+      { type: "setScore", data: { newScore: Number(plane.creep || 0) } },
+      "*"
+    );
 
     fill(255);
     textAlign(CENTER);
@@ -236,13 +241,38 @@ function draw() {
     text("Score: ", widthScreen / 2 - 100, 360);
     textAlign(RIGHT);
     text(plane.creep, widthScreen / 2 + 100, 360);
+
+    // leaderboard
+    strokeWeight(2);
+    stroke(color(157, 227, 208));
+    fill(color(0, 0, 0));
+    rect(0, 50, 150, 200, 6);
+    noStroke();
     textAlign(LEFT);
-    fill(color(157, 227, 208));
-    text("Your best: ", widthScreen / 2 - 100, 390);
-    textAlign(RIGHT);
-    text(best, widthScreen / 2 + 100, 390);
+    textSize(14);
+    fill(color(256, 256, 256));
+    text("LEADERBOARDS", 10, 80);
+    top3Leaderboard.forEach((score, index) => {
+      fill(
+        index === 0
+          ? color(246, 136, 187)
+          : index === 1
+          ? color(186, 241, 161)
+          : color(157, 227, 208)
+      );
+      textSize(index === 0 ? 14 : index === 1 ? 12 : 10);
+      textStyle(index === 0 ? BOLD : NORMAL);
+      text(
+        `${index + 1}. ${score.user}\n    ${score.score} points`,
+        10,
+        120 + index * 40
+      );
+    });
 
     stopButton.position(widthScreen / 2 - 150, 260);
+    // if (bgSound.isPlaying()) {
+    //   bgSound.stop();
+    // }
     noLoop();
   }
 }

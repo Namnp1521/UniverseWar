@@ -2,11 +2,20 @@ import "./createPost.js";
 
 import { Devvit, useState } from "@devvit/public-api";
 
+type LeaderboardType = {
+  user: string;
+  score: number;
+};
+
 // Defines the messages that are exchanged between Devvit and Web View
 type WebViewMessage =
   | {
       type: "initialData";
-      data: { username: string; bestScore: number };
+      data: {
+        username: string;
+        newScore: number;
+        leaderboard: LeaderboardType[];
+      };
     }
   | {
       type: "setScore";
@@ -14,7 +23,7 @@ type WebViewMessage =
     }
   | {
       type: "updateScore";
-      data: { bestScore: number };
+      data: { leaderboard: LeaderboardType[] };
     };
 
 Devvit.configure({
@@ -30,14 +39,25 @@ Devvit.addCustomPostType({
     // Load username with `useAsync` hook
     const [username] = useState(async () => {
       const currUser = await context.reddit.getCurrentUser();
-      return currUser?.username ?? "anon";
+      return currUser?.username ?? "anonymous";
     });
 
-    // Load latest score from redis with `useAsync` hook
-    const [score, setScore] = useState(async () => {
-      const redisScore = await context.redis.get(`score_${context.postId}`);
-      return Number(redisScore ?? 0);
-    });
+    // Load latest leaderboard from redis with `useAsync` hook
+    const [leaderboard, setLeaderboard] = useState<LeaderboardType[]>(
+      async () => {
+        const leaderboardData = await context.redis.get(
+          `leaderboard_${context.postId}`
+        );
+
+        if (!leaderboardData) return [];
+
+        // sort leaderboard
+        const leaderboard: LeaderboardType[] =
+          JSON.parse(leaderboardData)?.leaderboard || [];
+        leaderboard.sort((user1, user2) => user2.score - user1.score);
+        return leaderboard;
+      }
+    );
 
     // Create a reactive state for web view visibility
     const [webviewVisible, setWebviewVisible] = useState(false);
@@ -46,17 +66,35 @@ Devvit.addCustomPostType({
     const onMessage = async (msg: WebViewMessage) => {
       switch (msg.type) {
         case "setScore":
-          await context.redis.set(
-            `score_${context.postId}`,
-            msg.data.newScore.toString()
-          );
-          context.ui.webView.postMessage("gameWebView", {
-            type: "updateScore",
-            data: {
-              bestScore: msg.data.newScore,
-            },
-          });
-          setScore(msg.data.newScore);
+          const newScore = msg.data.newScore;
+          // find user have score less than newScore
+          if (
+            leaderboard.length < 3 ||
+            !!leaderboard.find((user) => newScore > user.score)
+          ) {
+            let newLeaderboard: LeaderboardType[] = [
+              ...leaderboard,
+              {
+                score: newScore,
+                user: username,
+              },
+            ];
+            newLeaderboard.sort((user1, user2) => user2.score - user1.score);
+            // get top 3 highest score
+            newLeaderboard = newLeaderboard.slice(0, 3);
+
+            await context.redis.set(
+              `leaderboard_${context.postId}`,
+              JSON.stringify({ leaderboard: newLeaderboard })
+            );
+            context.ui.webView.postMessage("gameWebView", {
+              type: "updateScore",
+              data: {
+                leaderboard: newLeaderboard,
+              },
+            });
+            setLeaderboard(newLeaderboard);
+          }
           break;
         case "initialData":
         case "updateScore":
@@ -74,7 +112,8 @@ Devvit.addCustomPostType({
         type: "initialData",
         data: {
           username: username,
-          bestScore: score,
+          newScore: 0,
+          leaderboard: leaderboard,
         },
       });
     };
