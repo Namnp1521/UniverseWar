@@ -157,27 +157,6 @@ function draw() {
       rect(xGuide + 36, yGuide + 18, 35, 15, 3);
       pop();
       break;
-    //     case ENTER:
-    //       if (plane.die) {
-    //         for (let i = 0; i < 100; i++) {
-    //           let star = new Star(
-    //             random(widthScreen),
-    //             random(500),
-    //             random(5),
-    //             random(10)
-    //           );
-    //           starArr.push(star);
-    //         }
-
-    //         for (let i = 0; i < 20; i++) {
-    //           let rock = new Rock();
-    //           rockAr.push(rock);
-    //         }
-
-    //         itemBullet = new ItemBullet();
-    //         plane = new Plane(300, 400);
-    //       }
-    //       break;
     default:
       break;
   }
@@ -226,9 +205,6 @@ function draw() {
     textSize(30);
     textStyle(BOLD);
     text("GAME OVER", widthScreen / 2, 250);
-    // textSize(14);
-    // textStyle(NORMAL);
-    // text("Press Enter to restart!", widthScreen / 2, 275);
     textSize(16);
     textStyle(BOLD);
     textAlign(LEFT);
@@ -252,22 +228,25 @@ function draw() {
     textSize(14);
     fill(color(256, 256, 256));
     text("LEADERBOARDS", 10, 80);
-    top3Leaderboard.forEach((score, index) => {
-      fill(
-        index === 0
-          ? color(246, 136, 187)
-          : index === 1
-          ? color(186, 241, 161)
-          : color(157, 227, 208)
-      );
-      textSize(index === 0 ? 14 : index === 1 ? 12 : 10);
-      textStyle(index === 0 ? BOLD : NORMAL);
-      text(
-        `${index + 1}. ${score.user}\n    ${score.score} points`,
-        10,
-        120 + index * 40
-      );
-    });
+    [...top3Leaderboard, { user: user, score: Number(plane.creep || 0) }]
+      .sort((user1, user2) => user2.score - user1.score)
+      .slice(0, 3)
+      .forEach((score, index) => {
+        fill(
+          index === 0
+            ? color(246, 136, 187)
+            : index === 1
+            ? color(186, 241, 161)
+            : color(157, 227, 208)
+        );
+        textSize(index === 0 ? 14 : index === 1 ? 12 : 10);
+        textStyle(index === 0 ? BOLD : NORMAL);
+        text(
+          `${index + 1}. ${score.user}\n    ${score.score} points`,
+          10,
+          120 + index * 40
+        );
+      });
 
     stopButton.position(widthScreen / 2 - 150, 260);
     // if (bgSound.isPlaying()) {
