@@ -222,12 +222,12 @@ function draw() {
     strokeWeight(2);
     stroke(color(157, 227, 208));
     fill(color(0, 0, 0));
-    rect(0, 50, 150, 200, 6);
+    rect(15, 50, 150, 200, 6);
     noStroke();
     textAlign(LEFT);
     textSize(14);
     fill(color(256, 256, 256));
-    text("LEADERBOARDS", 10, 80);
+    text("LEADERBOARDS", 25, 80);
     [...top3Leaderboard, { user: user, score: Number(plane.creep || 0) }]
       .sort((user1, user2) => user2.score - user1.score)
       .slice(0, 3)
@@ -243,7 +243,7 @@ function draw() {
         textStyle(index === 0 ? BOLD : NORMAL);
         text(
           `${index + 1}. ${score.user}\n    ${score.score} points`,
-          10,
+          25,
           120 + index * 40
         );
       });

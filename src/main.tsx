@@ -168,14 +168,23 @@ Devvit.addCustomPostType({
             />
           </hstack>
           <spacer />
-          {/* <vstack alignment="start middle">
-            <hstack>
-              <text size="xsmall">{username ?? ""}</text>
-              <text size="xsmall" weight="bold">
-                Best Score: {score ?? ""}
-              </text>
-            </hstack>
-          </vstack> */}
+          {!!leaderboard.length && (
+            <vstack alignment="start middle">
+              <hstack>
+                <text size="xsmall" weight="bold" color="#baf1a1">
+                  Top #1
+                </text>
+                <spacer />
+                <text size="xsmall" weight="bold" color="#f688bb">
+                  {leaderboard[0].user ?? ""}
+                </text>
+                <spacer />
+                <text size="xsmall" weight="bold" color="#9de3d0">
+                  {leaderboard[0].score ?? ""} points
+                </text>
+              </hstack>
+            </vstack>
+          )}
         </vstack>
         <vstack grow={webviewVisible} height={webviewVisible ? "100%" : "0%"}>
           <vstack
